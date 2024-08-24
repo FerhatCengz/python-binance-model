@@ -11,8 +11,9 @@ def calculate_technical_indicators(data: pd.DataFrame):
     data['macd'] = macd['MACD_12_26_9']
     data['macd_signal'] = macd['MACDs_12_26_9']
 
-    # 50 periyotluk basit hareketli ortalama (SMA) hesaplama
+    # 50 ve 200 periyotluk basit hareketli ortalamalar (SMA) hesaplama
     data['sma_50'] = ta.sma(data['close'], length=50)
+    data['sma_200'] = ta.sma(data['close'], length=200)
     
     # Bollinger Bantları hesaplama
     bollinger = ta.bbands(data['close'], length=20, std=2)
@@ -31,6 +32,9 @@ def calculate_technical_indicators(data: pd.DataFrame):
     # Önceki yüksek ve düşük seviyeleri ekleyelim
     data['previous_high'] = data['high'].shift(1)
     data['previous_low'] = data['low'].shift(1)
+
+    # ADX hesaplama
+    data['adx'] = ta.adx(data['high'], data['low'], data['close'], length=14)['ADX_14']
     
     return data
 
@@ -75,6 +79,17 @@ def evaluate_trading_signal(data: pd.DataFrame, model=None):
     stop_loss = current_price - (atr * 1.5)  # ATR'ye dayalı dinamik stop-loss
     take_profit = current_price + (atr * 2)  # ATR'ye dayalı dinamik take-profit
 
+    # Trend Tespiti
+    sma_50 = data['sma_50'].iloc[-1]
+    sma_200 = data['sma_200'].iloc[-1]
+    adx = data['adx'].iloc[-1]
+
+    trend = "unknown"
+    if sma_50 > sma_200 and adx > 25:
+        trend = "uptrend"
+    elif sma_50 < sma_200 and adx > 25:
+        trend = "downtrend"
+
     signal = {
         'buy': False,
         'sell': False,
@@ -94,15 +109,16 @@ def evaluate_trading_signal(data: pd.DataFrame, model=None):
         'previous_high': previous_high,
         'previous_low': previous_low,
         'stop_loss': stop_loss,  # Stop-Loss seviyesini ekliyoruz
-        'take_profit': take_profit  # Take-Profit seviyesini ekliyoruz
+        'take_profit': take_profit,  # Take-Profit seviyesini ekliyoruz
+        'trend': trend  # Trend yönünü ekliyoruz
     }
 
     last_row = data.iloc[-1]
 
     # Bollinger Bantları ve ATR ile Alım-Satım sinyalleri
-    if current_price < bb_lower and last_row['rsi'] < 30 and atr > atr_threshold:
+    if current_price < bb_lower and last_row['rsi'] < 30 and atr > atr_threshold and trend == "uptrend":
         signal['buy'] = True
-    elif current_price > bb_upper and last_row['rsi'] > 70 and atr > atr_threshold:
+    elif current_price > bb_upper and last_row['rsi'] > 70 and atr > atr_threshold and trend == "downtrend":
         signal['sell'] = True
     
     # Destek ve Direnç Seviyelerine dayalı alım-satım sinyalleri
