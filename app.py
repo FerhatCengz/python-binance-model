@@ -24,7 +24,10 @@ def trade_signal():
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
 
-    return jsonify(signal)
+    return jsonify(
+        signal=signal,
+        interval=interval
+    )
 
 if __name__ == '__main__':
     app.run(port=8080)
