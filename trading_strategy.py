@@ -57,6 +57,9 @@ def evaluate_trading_signal(data: pd.DataFrame, model=None):
     else:
         predicted_price = None  # Model yoksa tahmin edilen fiyat None olacak
 
+    if data['sma_50'].isnull().all():
+        raise ValueError("sma_50 sütunu boş veya eksik veri içeriyor.")
+    
     # Alım ve satım için önerilen fiyatlar (50 günlük SMA'ya dayalı olarak)
     buy_price = data['sma_50'].iloc[-1] * 0.98  # %2 altında bir fiyat
     sell_price = data['sma_50'].iloc[-1] * 1.02  # %2 üstünde bir fiyat

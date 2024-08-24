@@ -4,17 +4,25 @@ from trading_strategy import evaluate_trading_signal
 
 app = Flask(__name__)
 
+VALID_INTERVALS = ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M']
+
 @app.route('/trade_signal', methods=['POST'])
 def trade_signal():
     data = request.get_json()
     symbol = data.get('symbol')
     interval = data.get('interval', '15m')
 
-    # Binance'ten verileri çek
-    market_data = fetch_binance_data(symbol, interval)
+    if interval not in VALID_INTERVALS:
+        return jsonify({'error': 'Invalid interval'}), 400
 
-    # Alım-satım sinyali oluştur (model parametresi olmadan)
-    signal = evaluate_trading_signal(market_data)
+    try:
+        # Binance'ten verileri çek
+        market_data = fetch_binance_data(symbol, interval)
+
+        # Alım-satım sinyali oluştur (model parametresi olmadan)
+        signal = evaluate_trading_signal(market_data)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
 
     return jsonify(signal)
 
