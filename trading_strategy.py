@@ -38,7 +38,7 @@ def calculate_technical_indicators(data: pd.DataFrame):
     
     return data
 
-def evaluate_trading_signal(data: pd.DataFrame, model=None):
+def evaluate_trading_signal(data: pd.DataFrame, symbol: str, model=None):
     data = calculate_technical_indicators(data)
     
     # Mevcut fiyat (son kapanış fiyatı)
@@ -94,6 +94,7 @@ def evaluate_trading_signal(data: pd.DataFrame, model=None):
         trend = "downtrend"
 
     signal = {
+        "symbol": symbol,
         'buy': False,
         'sell': False,
         'current_price': current_price,  # Mevcut fiyatı ekliyoruz

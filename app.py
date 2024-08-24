@@ -20,7 +20,7 @@ def trade_signal():
         market_data = fetch_binance_data(symbol, interval)
 
         # Alım-satım sinyali oluştur (model parametresi olmadan)
-        signal = evaluate_trading_signal(market_data)
+        signal = evaluate_trading_signal(market_data, symbol)
     except ValueError as e:
         return jsonify({'error': str(e)}), 400
 
