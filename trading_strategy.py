@@ -36,6 +36,12 @@ def calculate_technical_indicators(data: pd.DataFrame):
     # ADX hesaplama
     data['adx'] = ta.adx(data['high'], data['low'], data['close'], length=14)['ADX_14']
     
+    # Hacim Hareketli Ortalaması (Volume Moving Average)
+    data['volume_ma'] = ta.sma(data['volume'], length=20)
+    
+    # On-Balance Volume (OBV)
+    data['obv'] = ta.obv(data['close'], data['volume'])
+
     return data
 
 def evaluate_trading_signal(data: pd.DataFrame, symbol: str, model=None):
@@ -92,6 +98,17 @@ def evaluate_trading_signal(data: pd.DataFrame, symbol: str, model=None):
         trend = "uptrend"
     elif sma_50 < sma_200 and adx > 25:
         trend = "downtrend"
+    
+    # Hacim Analizi
+    volume_ma = data['volume_ma'].iloc[-1]
+    current_volume = data['volume'].iloc[-1]
+    obv = data['obv'].iloc[-1]
+
+    volume_signal = "normal"
+    if current_volume > volume_ma * 1.5:
+        volume_signal = "high"
+    elif current_volume < volume_ma * 0.5:
+        volume_signal = "low"
 
     signal = {
         "symbol": symbol,
@@ -114,7 +131,11 @@ def evaluate_trading_signal(data: pd.DataFrame, symbol: str, model=None):
         'previous_low': previous_low,
         'stop_loss': stop_loss,  # Stop-Loss seviyesini ekliyoruz
         'take_profit': take_profit,  # Take-Profit seviyesini ekliyoruz
-        'trend': trend  # Trend yönünü ekliyoruz
+        'trend': trend,  # Trend yönünü ekliyoruz
+        'current_volume': current_volume,  # Mevcut hacmi ekliyoruz
+        'volume_ma': volume_ma,  # Hacim hareketli ortalaması
+        'volume_signal': volume_signal,  # Hacim sinyali (high, low, normal)
+        'obv': obv  # OBV (On-Balance Volume)
     }
 
     last_row = data.iloc[-1]
