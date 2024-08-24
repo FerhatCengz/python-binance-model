@@ -71,6 +71,10 @@ def evaluate_trading_signal(data: pd.DataFrame, model=None):
     previous_high = data['previous_high'].iloc[-1]
     previous_low = data['previous_low'].iloc[-1]
 
+    # Stop-Loss ve Take-Profit seviyeleri
+    stop_loss = current_price - (atr * 1.5)  # ATR'ye dayalı dinamik stop-loss
+    take_profit = current_price + (atr * 2)  # ATR'ye dayalı dinamik take-profit
+
     signal = {
         'buy': False,
         'sell': False,
@@ -88,7 +92,9 @@ def evaluate_trading_signal(data: pd.DataFrame, model=None):
         'support1': support1,
         'resistance1': resistance1,
         'previous_high': previous_high,
-        'previous_low': previous_low
+        'previous_low': previous_low,
+        'stop_loss': stop_loss,  # Stop-Loss seviyesini ekliyoruz
+        'take_profit': take_profit  # Take-Profit seviyesini ekliyoruz
     }
 
     last_row = data.iloc[-1]
