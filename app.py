@@ -1,12 +1,15 @@
 from flask import Flask, request, jsonify
 from data_fetcher import fetch_binance_data
 from trading_strategy import evaluate_trading_signal
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
+CORS(app, support_credentials=True)
 
 VALID_INTERVALS = ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M']
 
 @app.route('/trade_signal', methods=['POST'])
+@cross_origin(supports_credentials=True)
 def trade_signal():
     data = request.get_json()
     symbol = data.get('symbol')
@@ -30,4 +33,4 @@ def trade_signal():
     )
 
 if __name__ == '__main__':
-    app.run(port=8080)
+    app.run(host='0.0.0.0', port=8080, debug=True)
